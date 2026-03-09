@@ -4,7 +4,6 @@ import org.example.entity.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.lang.reflect.Field;
 import java.util.HashSet;
@@ -15,7 +14,7 @@ import java.util.stream.Collectors;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class MainTest {
 
@@ -31,10 +30,10 @@ public class MainTest {
     void setUp() {
         // Task objelerini oluşturma
         task1 = new Task("Java Collections", "Write List Interface", "Ann", Priority.LOW, Status.IN_QUEUE);
-        task2 = new Task("Java Collections", "Write Set Interface", "Ann", Priority.MED, Status.ASSIGNED);
-        task3 = new Task("Java Collections", "Write Map Interface", "Bob", Priority.HIGH, Status.IN_QUEUE);
+        task2 = new Task("Java Collections", "Write Set Interface", "Bob", Priority.MED, Status.ASSIGNED);
+        task3 = new Task("Java Collections", "Write Map Interface", "Carol", Priority.HIGH, Status.IN_QUEUE);
 
-        // Her set'e kendi taskını ekleme (Senin kodunda hepsi taskSet1'e eklenmişti, düzelttim)
+        // Her set'e kendi taskını ekleme
         taskSet1 = new HashSet<>();
         taskSet1.add(task1);
 
@@ -57,7 +56,7 @@ public class MainTest {
         Field priorityFields = task1.getClass().getDeclaredField("priority");
         Field statusFields = task1.getClass().getDeclaredField("status");
 
-        // 2 değeri 'private' erişim belirleyicisini temsil eder
+        // private = 2
         assertEquals(2, assigneeFields.getModifiers());
         assertEquals(2, descriptionsFields.getModifiers());
         assertEquals(2, projectFields.getModifiers());
@@ -78,9 +77,11 @@ public class MainTest {
     @DisplayName("TaskData getTasks method doğru çalışıyor mu ?")
     @Test
     public void testGetTasksMethod() {
-        assertEquals(taskSet1, taskData.getTasks("ann"));
-        assertEquals(taskSet2, taskData.getTasks("bob"));
-        assertEquals(taskSet3, taskData.getTasks("carol"));
+        assertEquals(taskSet1, taskData.getTasks("Ann"));
+        assertEquals(taskSet2, taskData.getTasks("Bob"));
+        assertEquals(taskSet3, taskData.getTasks("Carol"));
+        assertEquals(new HashSet<>(), taskData.getTasks("Unknown")); // olmayan kullanıcı
+        assertEquals(taskSet1.size() + taskSet2.size() + taskSet3.size(), taskData.getTasks("all").size()); // all check
     }
 
     @DisplayName("TaskData getUnion method doğru çalışıyor mu ?")
@@ -91,7 +92,6 @@ public class MainTest {
         Set<Task> s2 = new HashSet<>();
         s2.add(task2);
 
-        // TaskData içindeki getUnion metodunun List<Set<Task>> aldığını varsayıyoruz
         Set<Task> totals = taskData.getUnion(List.of(s1, s2));
         assertEquals(2, totals.size());
     }
@@ -105,9 +105,7 @@ public class MainTest {
         Set<Task> s2 = new HashSet<>();
         s2.add(task2);
 
-        // Metod ismi getIntersect olarak güncellendi
         Set<Task> intersections = taskData.getIntersect(s1, s2);
-
         assertEquals(1, intersections.size());
         assertEquals(task2, intersections.iterator().next());
     }
@@ -121,9 +119,7 @@ public class MainTest {
         Set<Task> s2 = new HashSet<>();
         s2.add(task2);
 
-        // Metod ismi getDifference olarak güncellendi
         Set<Task> differences = taskData.getDifference(s1, s2);
-
         assertEquals(1, differences.size());
         assertEquals(task1, differences.iterator().next());
     }
@@ -132,10 +128,9 @@ public class MainTest {
     @Test
     public void testFindUniqueWordsMethod() {
         Set<String> uniqueWords = StringSet.findUniqueWords();
-        // Kelime sayısı temizleme yöntemine göre değişebilir, 143 genel bir beklentidir
         assertEquals(143, uniqueWords.size());
 
-        List<String> results = uniqueWords.stream().collect(Collectors.toList());
+        List<String> results = uniqueWords.stream().sorted().collect(Collectors.toList());
         assertEquals("a", results.get(0));
         assertEquals("wrote", results.get(results.size() - 1));
     }
